@@ -1,0 +1,22 @@
+# Build outputs
+*.o
+sss_server
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Data
+data/*
+!data/.gitkeep
+
+# macOS junk
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+.fuse_hidden*
