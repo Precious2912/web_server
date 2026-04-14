@@ -22,7 +22,7 @@ int main() {
             if (raw.empty()) continue;
 
             // Cap exceeded before we found \r\n\r\n — malformed or attack
-            HttpRequest req = parse(raw);
+            HttpRequest req = parse_request(raw);
             std::string response = req.valid ? route(req) : response_bad_request();
 
             client.send_response(response);

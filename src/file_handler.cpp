@@ -2,16 +2,16 @@
 #include <fstream>
 #include <sstream>
 
-bool read_file(const std::string& path, std::string& contents) {
-    if (path.find("..") != std::string::npos) return false;
+std::optional<std::string> read_file(const std::string& path) {
+    // Block directory traversal — "../" in a path is never legitimate here
+    if (path.find("..") != std::string::npos) return std::nullopt;
 
     std::ifstream file(path, std::ios::binary);
-    if (!file.is_open()) return false;
+    if (!file.is_open()) return std::nullopt;
 
     std::ostringstream ss;
     ss << file.rdbuf();
-    contents = ss.str();
-    return true;
+    return ss.str();
 }
 
 std::string mime_type(const std::string& path) {

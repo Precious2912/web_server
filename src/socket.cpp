@@ -1,6 +1,6 @@
 #include "socket.h"
-#include <cstring>
 #include <stdexcept>
+#include <form_handler.h>
 
 static const size_t INITIAL_BUF = 512;
 static const size_t MAX_HEADER  = 8192; // 8KB hard cap
@@ -38,24 +38,58 @@ void ClientSocket::send_response(const std::string& response) const {
     send(sockfd, response.c_str(), response.size(), 0);
 }
 
+// Case-insensitive scan for a header value in the raw buffer.
+// Returns the index just past the colon, or npos if not found.
+static size_t find_header_value(const std::string& buffer, const std::string& header_lc) {
+    std::string lower_buf = buffer;
+    std::transform(lower_buf.begin(), lower_buf.end(), lower_buf.begin(), ::tolower);
+
+    auto pos = lower_buf.find(header_lc + ":");
+    if (pos == std::string::npos) return std::string::npos;
+    return pos + header_lc.size() + 1;
+}
+
 std::string ClientSocket::receive_request() const {
     std::string buffer;
     buffer.reserve(INITIAL_BUF);
 
     char chunk[INITIAL_BUF];
 
-    while (true) {
+    // Read until we have the full headers
+    while (buffer.find("\r\n\r\n") == std::string::npos) {
         ssize_t bytes = recv(sockfd, chunk, sizeof(chunk), 0);
-
-        if (bytes <= 0) break; // timeout, disconnect, or error
+        if (bytes <= 0) return buffer;
 
         buffer.append(chunk, bytes);
 
-        // Enforce the cap before we accept more
-        if (buffer.size() > MAX_HEADER) break;
+        if (buffer.size() > MAX_HEADER) return buffer; // cap hit, parser rejects it
+    }
 
-        // HTTP headers end at \r\n\r\n — stop reading once we have them
-        if (buffer.find("\r\n\r\n") != std::string::npos) break;
+    // Check if there's a body to read (Content-Length header present)
+    auto cl_pos = find_header_value(buffer, "content-length");
+    if (cl_pos != std::string::npos) {
+        auto end   = buffer.find("\r\n", cl_pos);
+        if (end != std::string::npos) {
+            try {
+                size_t content_length = std::stoul(buffer.substr(cl_pos, end - cl_pos));
+
+                // Find where body starts
+                auto body_start = buffer.find("\r\n\r\n") + 4;
+                size_t body_have = buffer.size() - body_start;
+
+                // Cap check before reading more
+                if (content_length <= MAX_BODY_SIZE) {
+                    while (body_have < content_length) {
+                        ssize_t bytes = recv(sockfd, chunk, sizeof(chunk), 0);
+                        if (bytes <= 0) break;
+                        buffer.append(chunk, bytes);
+                        body_have += bytes;
+                    }
+                }
+            } catch (...) {
+                // Non-numeric Content-Length — parser will reject it
+            }
+        }
     }
 
     return buffer;
