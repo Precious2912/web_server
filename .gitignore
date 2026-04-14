@@ -1,5 +1,5 @@
 # Build outputs
-*.o
+obj/*
 sss_server
 
 # Logs

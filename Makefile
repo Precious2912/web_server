@@ -10,18 +10,21 @@ SRC = src/main.cpp \
 	  src/form_handler.cpp \
 	  src/security.cpp \
 	  src/utils.cpp
-OBJ = $(SRC:.cpp=.o)
+OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 TARGET = sss_server
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: obj $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
+obj:
+	mkdir -p obj
 
-%.o: %.cpp
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+obj/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o $(TARGET)
+	rm -rf obj $(TARGET)
