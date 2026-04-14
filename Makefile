@@ -1,7 +1,12 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -Iinclude -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2
 
-SRC = src/main.cpp src/socket.cpp
+SRC = src/main.cpp \
+      src/socket.cpp \
+      src/request.cpp \
+      src/response.cpp \
+      src/router.cpp \
+      src/file_handler.cpp
 OBJ = $(SRC:.cpp=.o)
 TARGET = sss_server
 
