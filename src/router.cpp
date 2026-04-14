@@ -4,6 +4,7 @@
 #include "form_handler.h"
 #include "security.h"
 #include "utils.h"
+#include <filesystem>
 
 static const std::string WWW_ROOT = "./www";
 
@@ -50,8 +51,15 @@ static RouteResult handle_get(const HttpRequest& req) {
 
     // resolve_safe_path handles realpath + root confinement
     std::string safe_path = resolve_safe_path(path, WWW_ROOT);
-    if (safe_path.empty())
+    if (safe_path.empty()){
+        // realpath fails for both traversal attempts AND missing files.
+        // Check if the file simply doesn't exist before calling it forbidden.
+        std::string candidate = WWW_ROOT + path;
+        if (!std::filesystem::exists(candidate))
+            return security_error_response(SecurityStatus::NOT_FOUND);
         return security_error_response(SecurityStatus::FORBIDDEN);
+    }
+        //return security_error_response(SecurityStatus::FORBIDDEN);
 
     auto contents = read_file(safe_path);
     if (!contents)
