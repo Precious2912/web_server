@@ -9,9 +9,9 @@ static std::string status_text(int code) {
         {403, "Forbidden"},
         {404, "Not Found"},
         {405, "Method Not Allowed"},
+        {413, "Payload Too Large"},
         {415, "Unsupported Media Type"},
-        {500, "Internal Server Error"},
-        //{413, "Payload Too Large"},
+        {500, "Internal Server Error"}
 
     };
     auto it = texts.find(code);

@@ -1,34 +1,10 @@
 #include "form_handler.h"
+#include "utils.h"
 #include <sstream>
 #include <fstream>
 #include <chrono>
 #include <filesystem>
 #include <algorithm>
-
-// Decodes %XX encoding and + as space (standard application/x-www-form-urlencoded)
-static std::string url_decode(const std::string& s) {
-    std::string result;
-    result.reserve(s.size());
-
-    for (size_t i = 0; i < s.size(); ++i) {
-        if (s[i] == '+') {
-            result += ' ';
-        } else if (s[i] == '%' && i + 2 < s.size()) {
-            std::string hex = s.substr(i + 1, 2);
-            // Make sure both chars are actually hex before converting
-            bool valid = std::all_of(hex.begin(), hex.end(), ::isxdigit);
-            if (valid) {
-                result += static_cast<char>(std::stoi(hex, nullptr, 16));
-                i += 2;
-            } else {
-                result += s[i]; // not a valid escape, keep as-is
-            }
-        } else {
-            result += s[i];
-        }
-    }
-    return result;
-}
 
 std::optional<FormData> parse_form_body(const std::string& body) {
     FormData data;

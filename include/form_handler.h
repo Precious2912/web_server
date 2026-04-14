@@ -5,8 +5,6 @@
 #include <unordered_map>
 #include <optional>
 
-static const size_t MAX_BODY_SIZE = 1024 * 1024; // 1MB hard cap
-
 // URL-decoded, sanitised key=value pairs from the form body
 using FormData = std::unordered_map<std::string, std::string>;
 

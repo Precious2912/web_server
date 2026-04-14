@@ -1,9 +1,8 @@
 #include "socket.h"
+#include "utils.h"
 #include <stdexcept>
-#include <form_handler.h>
 
-static const size_t INITIAL_BUF = 512;
-static const size_t MAX_HEADER  = 8192; // 8KB hard cap
+static const size_t INITIAL_BUF = 512; // starting recv buffer size
 
 ServerSocket::ServerSocket(int port) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -62,7 +61,7 @@ std::string ClientSocket::receive_request() const {
 
         buffer.append(chunk, bytes);
 
-        if (buffer.size() > MAX_HEADER) return buffer; // cap hit, parser rejects it
+        if (buffer.size() > MAX_HEADER_SIZE) return buffer; // cap hit, parser rejects it
     }
 
     // Check if there's a body to read (Content-Length header present)
