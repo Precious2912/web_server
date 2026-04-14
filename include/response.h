@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include "result.h"
 
 // Builds a complete HTTP response string
 std::string build_response(
@@ -12,11 +13,14 @@ std::string build_response(
     const std::unordered_map<std::string, std::string>& extra_headers = {}
 );
 
-std::string response_bad_request();
-std::string response_not_found();
-std::string response_method_not_supported();
-std::string response_unsupported_media_type();
-std::string response_redirect(const std::string& location);
-std::string response_internal_server_error();
+RouteResult response_bad_request();
+RouteResult response_forbidden();
+RouteResult response_not_found();
+RouteResult response_method_not_supported();
+RouteResult response_payload_too_large();
+RouteResult response_unsupported_media_type();
+RouteResult response_too_many_requests();
+RouteResult response_redirect(const std::string& location);
+RouteResult response_internal_server_error();
 
 #endif

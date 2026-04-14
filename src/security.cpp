@@ -23,6 +23,26 @@ static bool is_allowed_method(const std::string& method) {
     return false;
 }
 
+int security_status_code(SecurityStatus status) {
+    switch (status) {
+        case SecurityStatus::FORBIDDEN:          return 403;
+        case SecurityStatus::NOT_FOUND:          return 404;
+        case SecurityStatus::METHOD_NOT_ALLOWED: return 405;
+        case SecurityStatus::TOO_LARGE:          return 413;
+        default:                                 return 400;
+    }
+}
+
+RouteResult security_error_response(SecurityStatus status) {
+    switch (status) {
+        case SecurityStatus::FORBIDDEN:          return response_forbidden();
+        case SecurityStatus::NOT_FOUND:          return response_not_found();
+        case SecurityStatus::METHOD_NOT_ALLOWED: return response_method_not_supported();
+        case SecurityStatus::TOO_LARGE:          return response_payload_too_large();
+        default:                                 return response_bad_request();
+    }
+}
+
 std::string resolve_safe_path(const std::string& url_path, const std::string& www_root) {
     std::string decoded = url_decode(url_path);
     if (decoded.empty()) return "";
@@ -100,15 +120,4 @@ SecurityStatus validate_request(const HttpRequest& req) {
     }
 
     return SecurityStatus::OK;
-}
-
-std::string security_error_response(SecurityStatus status) {
-    switch (status) {
-        case SecurityStatus::BAD_REQUEST:        return build_response(400, "text/plain", "400 Bad Request");
-        case SecurityStatus::FORBIDDEN:          return build_response(403, "text/plain", "403 Forbidden");
-        case SecurityStatus::NOT_FOUND:          return build_response(404, "text/plain", "404 Not Found");
-        case SecurityStatus::METHOD_NOT_ALLOWED: return build_response(405, "text/plain", "405 Method Not Allowed");
-        case SecurityStatus::TOO_LARGE:          return build_response(413, "text/plain", "413 Payload Too Large");
-        default:                                 return build_response(400, "text/plain", "400 Bad Request");
-    }
 }

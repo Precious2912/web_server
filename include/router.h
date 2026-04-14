@@ -2,6 +2,7 @@
 #define ROUTER_H
 
 #include "request.h"
+#include "result.h"
 #include <string>
 
 // Called once at startup after the fork so the router knows
@@ -9,6 +10,6 @@
 void set_ipc_fd(int fd);
 
 // Takes a parsed request, returns a ready-to-send HTTP response string
-std::string route(const HttpRequest& req);
+RouteResult route(const HttpRequest& req);
 
 #endif

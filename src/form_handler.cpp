@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <iostream>
 #include <unistd.h>
+#include "logger.h"
 
 std::optional<FormData> parse_form_body(const std::string& body) {
     FormData data;
@@ -120,6 +121,7 @@ void form_handler_loop(int ipc_fd) {
         }
 
         if (len == 0 || len > MAX_BODY_SIZE) {
+            LOG_WARN("[form handler] rejected bad length: " + std::to_string(len));
             std::cerr << "[form handler] bad length: " << len << std::endl;
             continue;
         }
@@ -129,12 +131,18 @@ void form_handler_loop(int ipc_fd) {
 
         auto form_data = parse_form_body(body);
         if (!form_data) {
+            LOG_WARN("[form handler] failed to parse body");
             std::cerr << "[form handler] failed to parse body" << std::endl;
             continue;
         }
 
         if (!save_form_data(*form_data)) {
+            LOG_ERROR("[form handler] failed to save submission to disk");
             std::cerr << "[form handler] failed to save submission" << std::endl;
+        } else {
+            LOG_INFO("[form handler] submission saved");
+            std::cerr << "[form handler] submission saved" << std::endl;
+
         }
     }
 

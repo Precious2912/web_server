@@ -11,6 +11,7 @@ static std::string status_text(int code) {
         {405, "Method Not Allowed"},
         {413, "Payload Too Large"},
         {415, "Unsupported Media Type"},
+        {429, "Too Many Requests"},
         {500, "Internal Server Error"}
 
     };
@@ -38,26 +39,38 @@ std::string build_response(int status_code,
 }
 
 
-std::string response_bad_request() {
-    return build_response(400, "text/plain", "400 Bad Request");
+RouteResult response_bad_request() {
+    return { 400, build_response(400, "text/plain", "400 Bad Request") };
 }
 
-std::string response_not_found() {
-    return build_response(404, "text/plain", "404 Not Found");
+RouteResult response_forbidden() {
+    return { 403, build_response(403, "text/plain", "403 Forbidden") };
 }
 
-std::string response_method_not_supported() {
-    return build_response(405, "text/plain", "405 Method Not Allowed");
+RouteResult response_not_found() {
+    return { 404, build_response(404, "text/plain", "404 Not Found") };
 }
 
-std::string response_unsupported_media_type() {
-    return build_response(415, "text/plain", "415 Unsupported Media Type");
+RouteResult response_method_not_supported() {
+    return { 405, build_response(405, "text/plain", "405 Method Not Allowed") };
 }
 
-std::string response_redirect(const std::string& location) {
-    return build_response(303, "text/plain", "See Other", {{"Location", location}});
+RouteResult response_payload_too_large() {
+    return { 413, build_response(413, "text/plain", "413 Payload Too Large") };
 }
 
-std::string response_internal_server_error() {
-    return build_response(500, "text/plain", "500 Internal Server Error");
+RouteResult response_unsupported_media_type() {
+    return { 415, build_response(415, "text/plain", "415 Unsupported Media Type") };
+}
+
+RouteResult response_too_many_requests() {
+    return { 429, build_response(429, "text/plain", "429 Too Many Requests") };
+}
+
+RouteResult response_redirect(const std::string& location) {
+    return { 303, build_response(303, "text/plain", "See Other", {{"Location", location}}) };
+}
+
+RouteResult response_internal_server_error() {
+    return { 500, build_response(500, "text/plain", "500 Internal Server Error") };
 }

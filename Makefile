@@ -7,10 +7,14 @@ SRC = src/main.cpp \
       src/response.cpp \
       src/router.cpp \
       src/file_handler.cpp \
-	  src/form_handler.cpp \
-	  src/security.cpp \
-	  src/utils.cpp \
-	  src/ipc.cpp
+      src/form_handler.cpp \
+      src/security.cpp \
+      src/utils.cpp \
+      src/ipc.cpp \
+      src/thread_pool.cpp \
+      src/connection_handler.cpp \
+      src/logger.cpp
+
 OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 TARGET = sss_server
 
@@ -22,7 +26,7 @@ obj:
 	mkdir -p obj
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -pthread -o $@ $^
 
 obj/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

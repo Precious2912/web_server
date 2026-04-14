@@ -30,10 +30,20 @@ public:
     int get_fd() const { return sockfd; }
 };
 
+// Bundles the accepted fd with the client's IP string so the caller
+// doesn't have to make a second call to get the address.
+struct AcceptedClient {
+    int         fd;
+    std::string ip; // dotted-decimal, e.g. "192.168.1.1"
+};
+
 class ServerSocket : public Socket {
 public:
-    ServerSocket(int port);
-    int accept_client() const;
+    explicit ServerSocket(int port);
+    // Returns the client fd and populates client_ip with the remote address
+    //int accept_client(std::string& client_ip) const;
+    AcceptedClient accept_client() const;
+
 };
 
 class ClientSocket : public Socket {

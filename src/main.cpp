@@ -1,16 +1,34 @@
 #include "socket.h"
-#include "request.h"
-#include "response.h"
 #include "router.h"
 #include "ipc.h"
 #include "form_handler.h"
+#include "thread_pool.h"
+#include "connection_handler.h"
+#include "logger.h"
+#include <filesystem>
 #include <iostream>
+
+static const int PORT = 8080;
+static const size_t NUM_THREADS = 4;
+static const char*  LOG_PATH    = "./logs/sss.log";
 
 int main() {
     try {
-        // Set up the IPC channel before forking — both processes inherit
-        // the file descriptors, then each closes the end it doesn't need
+        std::filesystem::create_directories("./logs");
+
+        Logger logger(LOG_PATH);
+        g_logger = &logger;
+        
+        // IPC channel set up before fork - both processes inherit both ends,
+        // then each closes the end it doesn't own
         IpcChannel ipc = create_ipc_channel();
+
+        // Automatically reap the child when it exits — no zombie processes
+        signal(SIGCHLD, SIG_IGN);
+
+        // If the form handler dies, writes to the pipe return an error
+        // instead of delivering SIGPIPE and killing the whole server
+        signal(SIGPIPE, SIG_IGN);
 
         pid_t pid = fork();
         if (pid < 0) {
@@ -32,31 +50,31 @@ int main() {
         // Wire up the router so POST requests know where to send bodies
         set_ipc_fd(ipc.parent_fd);
 
-        const int PORT = 8080;
         ServerSocket server(PORT);
-        //std::cout << "SSS running on port " << PORT << std::endl;
+        ThreadPool pool(NUM_THREADS);
+
+        LOG_INFO("SSS started | port=" + std::to_string(PORT) +
+                 " | threads=" + std::to_string(NUM_THREADS) +
+                 " | form_handler_pid=" + std::to_string(pid));
+
         std::cout << "SSS running on port " << PORT
-                  << " (form handler pid: " << pid << ")" << std::endl;
+                  << " | threads: "          << NUM_THREADS
+                  << " | form handler pid: " << pid
+                  << std::endl;
 
 
         while (true) {
-            int client_fd = server.accept_client();
-            if (client_fd < 0) continue;
+            AcceptedClient ac = server.accept_client();
+            if (ac.fd < 0) continue;
 
-            ClientSocket client(client_fd);
-
-            std::string raw = client.receive_request();
-
-            // Empty read - just move on. Lol
-            if (raw.empty()) continue;
-
-            // Cap exceeded before we found \r\n\r\n — malformed or attack
-            HttpRequest req = parse_request(raw);
-            std::string response = req.valid ? route(req) : response_bad_request();
-
-            client.send_response(response);
+            // Captured by value — the lambda owns client_fd from this point.
+            // handle_connection wraps it in a ClientSocket which closes it.
+            pool.enqueue([ac]() {
+                handle_connection(ac.fd, ac.ip);
+            });
         }
     } catch (const std::exception& e) {
+        LOG_ERROR("Fatal: " + std::string(e.what()));
         std::cerr << "Fatal: " << e.what() << std::endl;
         return 1;
     }

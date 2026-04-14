@@ -44,7 +44,7 @@ static bool is_form_encoded(const HttpRequest& req) {
     return it->second.find("application/x-www-form-urlencoded") == 0;
 }
 
-static std::string handle_get(const HttpRequest& req) {
+static RouteResult handle_get(const HttpRequest& req) {
     std::string path = req.path;
     if (path == "/") path = "/index.html";
 
@@ -54,12 +54,13 @@ static std::string handle_get(const HttpRequest& req) {
         return security_error_response(SecurityStatus::FORBIDDEN);
 
     auto contents = read_file(safe_path);
-    if (!contents) return security_error_response(SecurityStatus::NOT_FOUND);
+    if (!contents)
+        return security_error_response(SecurityStatus::NOT_FOUND);
 
-    return build_response(200, mime_type(WWW_ROOT + path), *contents);
+    return { 200, build_response(200, mime_type(WWW_ROOT + path), *contents) };
 }
 
-static std::string handle_post(const HttpRequest& req) {
+static RouteResult handle_post(const HttpRequest& req) {
     if (req.path != "/submit") 
         return response_not_found();
         
@@ -73,7 +74,7 @@ static std::string handle_post(const HttpRequest& req) {
 
     // Reject before we even look at the body
     if (static_cast<size_t>(content_length) > MAX_BODY_SIZE)
-        return build_response(413, "text/plain", "413 Payload Too Large");
+        return response_payload_too_large();
 
     // Reject if body shorter than promised
     if (static_cast<long>(req.body.size()) < content_length)
@@ -100,7 +101,7 @@ static std::string handle_post(const HttpRequest& req) {
     return response_redirect("/form.html");
 }
 
-std::string route(const HttpRequest& req) {
+RouteResult route(const HttpRequest& req) {
     // Every request passes through the security layer first
     SecurityStatus status = validate_request(req);
     if (status != SecurityStatus::OK)

@@ -1,6 +1,7 @@
 #include "socket.h"
 #include "utils.h"
 #include <stdexcept>
+#include <arpa/inet.h>
 
 static const size_t INITIAL_BUF = 512; // starting recv buffer size
 
@@ -29,8 +30,22 @@ ServerSocket::ServerSocket(int port) {
         throw std::runtime_error("Listen failed");
 }
 
-int ServerSocket::accept_client() const {
-    return accept(sockfd, nullptr, nullptr);
+// int ServerSocket::accept_client() const {
+//     return accept(sockfd, nullptr, nullptr);
+// }
+
+AcceptedClient ServerSocket::accept_client() const {
+    sockaddr_in client_addr{};
+    socklen_t   addr_len = sizeof(client_addr);
+
+    int fd = accept(sockfd, (struct sockaddr*)&client_addr, &addr_len);
+    if (fd < 0) return { -1, "" };
+
+    // inet_ntop is thread-safe unlike inet_ntoa — no shared static buffer
+    char ip_buf[INET_ADDRSTRLEN] = "unknown";
+    inet_ntop(AF_INET, &client_addr.sin_addr, ip_buf, sizeof(ip_buf));
+
+    return { fd, std::string(ip_buf) };
 }
 
 void ClientSocket::send_response(const std::string& response) const {
