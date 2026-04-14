@@ -2,6 +2,7 @@
 #include "response.h"
 #include "file_handler.h"
 #include "form_handler.h"
+#include "security.h"
 
 static const std::string WWW_ROOT = "./www";
 
@@ -37,8 +38,13 @@ static std::string handle_get(const HttpRequest& req) {
     std::string path = req.path;
     if (path == "/") path = "/index.html";
 
-    auto contents = read_file(WWW_ROOT + path);
-    if (!contents) return response_not_found();
+    // resolve_safe_path handles realpath + root confinement
+    std::string safe_path = resolve_safe_path(path, WWW_ROOT);
+    if (safe_path.empty())
+        return security_error_response(SecurityStatus::FORBIDDEN);
+
+    auto contents = read_file(safe_path);
+    if (!contents) return security_error_response(SecurityStatus::NOT_FOUND);
 
     return build_response(200, mime_type(WWW_ROOT + path), *contents);
 }
@@ -80,6 +86,11 @@ static std::string handle_post(const HttpRequest& req) {
 }
 
 std::string route(const HttpRequest& req) {
+    // Every request passes through the security layer first
+    SecurityStatus status = validate_request(req);
+    if (status != SecurityStatus::OK)
+        return security_error_response(status);
+
     if (req.method == "GET")  return handle_get(req);
     if (req.method == "POST") return handle_post(req);
 

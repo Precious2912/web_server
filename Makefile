@@ -7,7 +7,8 @@ SRC = src/main.cpp \
       src/response.cpp \
       src/router.cpp \
       src/file_handler.cpp \
-	  src/form_handler.cpp
+	  src/form_handler.cpp \
+	  src/security.cpp
 OBJ = $(SRC:.cpp=.o)
 TARGET = sss_server
 
