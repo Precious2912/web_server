@@ -41,8 +41,6 @@ HttpRequest parse_request(const std::string& raw) {
     std::istringstream rl(request_line);
     if (!(rl >> req.method >> req.path >> req.version)) return req;
 
-    if (req.method != "GET" && req.method != "POST") return req;
-
     if (req.version != "HTTP/1.0" && req.version != "HTTP/1.1") return req;
 
     if (req.path.empty() || req.path[0] != '/') return req;

@@ -6,7 +6,7 @@
 #include <filesystem>
 
 static const std::string ALLOWED_METHODS[] = { "GET", "POST" };
-static const size_t MAX_METHOD_LEN  = 4; // longest this server support is "POST"
+static const size_t MAX_METHOD_LEN  = 7;
 static const size_t MAX_PATH_LEN    = 2048;
 
 static bool has_null_byte(const std::string& s) {

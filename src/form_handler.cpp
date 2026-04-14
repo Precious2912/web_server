@@ -58,7 +58,7 @@ bool save_form_data(const FormData& data) {
 
     // Timestamp as filename so submissions don't overwrite each other
     auto now = std::chrono::system_clock::now();
-    auto ts  = std::chrono::duration_cast<std::chrono::seconds>(
+    auto ts  = std::chrono::duration_cast<std::chrono::microseconds>(
                    now.time_since_epoch()).count();
 
     std::string path = "./data/submission_" + std::to_string(ts) + ".txt";
