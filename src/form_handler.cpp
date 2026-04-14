@@ -5,6 +5,9 @@
 #include <chrono>
 #include <filesystem>
 #include <algorithm>
+#include <sys/socket.h>
+#include <iostream>
+#include <unistd.h>
 
 std::optional<FormData> parse_form_body(const std::string& body) {
     FormData data;
@@ -67,4 +70,73 @@ bool save_form_data(const FormData& data) {
     }
 
     return true;
+}
+
+/* IPC Protocol
+  Simple length-prefixed framing:
+  [4 bytes: body length as uint32_t][body bytes]
+  This lets the receiver know exactly how many bytes to read without
+  needing a delimiter that might appear in the body itself. 
+*/
+
+static bool write_all(int fd, const void* buf, size_t len) {
+    const char* ptr = static_cast<const char*>(buf);
+    while (len > 0) {
+        ssize_t written = send(fd, ptr, len, 0);
+        if (written <= 0) return false;
+        ptr += written;
+        len -= written;
+    }
+    return true;
+}
+
+static bool read_all(int fd, void* buf, size_t len) {
+    char* ptr = static_cast<char*>(buf);
+    while (len > 0) {
+        ssize_t bytes = recv(fd, ptr, len, 0);
+        if (bytes <= 0) return false;
+        ptr += bytes;
+        len -= bytes;
+    }
+    return true;
+}
+
+bool send_to_form_handler(int ipc_fd, const std::string& body) {
+    // Send length prefix first so the child knows how much to read
+    uint32_t len = static_cast<uint32_t>(body.size());
+    if (!write_all(ipc_fd, &len, sizeof(len))) return false;
+    if (!write_all(ipc_fd, body.c_str(), len)) return false;
+    return true;
+}
+
+void form_handler_loop(int ipc_fd) {
+    // This is the child process — it just sits here waiting for work.
+    // The parent sends POST bodies over the socket; we parse and save them.
+    while (true) {
+        uint32_t len = 0;
+        if (!read_all(ipc_fd, &len, sizeof(len))) {
+            // Parent closed the connection or server is shutting down
+            break;
+        }
+
+        if (len == 0 || len > MAX_BODY_SIZE) {
+            std::cerr << "[form handler] bad length: " << len << std::endl;
+            continue;
+        }
+
+        std::string body(len, '\0');
+        if (!read_all(ipc_fd, body.data(), len)) break;
+
+        auto form_data = parse_form_body(body);
+        if (!form_data) {
+            std::cerr << "[form handler] failed to parse body" << std::endl;
+            continue;
+        }
+
+        if (!save_form_data(*form_data)) {
+            std::cerr << "[form handler] failed to save submission" << std::endl;
+        }
+    }
+
+    close(ipc_fd);
 }

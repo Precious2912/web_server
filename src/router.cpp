@@ -5,8 +5,16 @@
 #include "security.h"
 #include "utils.h"
 
-
 static const std::string WWW_ROOT = "./www";
+
+// The IPC fd is set once at startup by main() after the fork.
+// Router uses it to forward POST bodies to the form handler process.
+static int g_ipc_fd = -1;
+
+void set_ipc_fd(int fd) {
+    g_ipc_fd = fd;
+}
+
 
 // Pulls Content-Length from headers, returns -1 if missing or invalid
 static long get_content_length(const HttpRequest& req) {
@@ -77,10 +85,15 @@ static std::string handle_post(const HttpRequest& req) {
 
     std::string body = req.body.substr(0, content_length);
 
-    auto form_data = parse_form_body(body);
-    if (!form_data) return response_bad_request();
+    // auto form_data = parse_form_body(body);
+    // if (!form_data) return response_bad_request();
 
-    if (!save_form_data(*form_data))
+    // if (!save_form_data(*form_data))
+    //     return response_internal_server_error();
+
+    // Hand off to the isolated form handler process rather than processing
+    // it here — keeps file writes out of the main server process entirely
+    if (g_ipc_fd < 0 || !send_to_form_handler(g_ipc_fd, body))
         return response_internal_server_error();
 
     // Redirect back to the form so refreshing doesn't resubmit

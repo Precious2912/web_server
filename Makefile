@@ -9,7 +9,8 @@ SRC = src/main.cpp \
       src/file_handler.cpp \
 	  src/form_handler.cpp \
 	  src/security.cpp \
-	  src/utils.cpp
+	  src/utils.cpp \
+	  src/ipc.cpp
 OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 TARGET = sss_server
 

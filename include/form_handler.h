@@ -18,4 +18,12 @@ std::string sanitise_field(const std::string& value);
 // Returns false if the write fails
 bool save_form_data(const FormData& data);
 
+// Child process entry point — sits in a loop reading POST bodies
+// from the IPC socket and writing them to disk
+void form_handler_loop(int ipc_fd);
+
+// Parent side — sends a POST body to the child for processing.
+// Returns false if the send fails.
+bool send_to_form_handler(int ipc_fd, const std::string& body);
+
 #endif
