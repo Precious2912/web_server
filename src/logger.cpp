@@ -57,8 +57,8 @@ std::string Logger::timestamp() {
                       now.time_since_epoch()) % 1000;
 
     std::ostringstream ss;
-    ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%d %H:%M:%S")
+    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
        << '.' << std::setfill('0') << std::setw(3) << ms.count()
-       << " UTC";
+       << " BST";
     return ss.str();
 }
