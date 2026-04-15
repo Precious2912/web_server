@@ -16,7 +16,7 @@ int main() {
     try {
         std::filesystem::create_directories("./logs");
 
-       // Heap-allocate the logger so it outlives any early exception during startup.
+        // Heap-allocate the logger so it outlives any early exception during startup.
         // g_logger is just a raw observer — it borrows the address, doesn't own it.
         auto logger_ptr = std::make_unique<Logger>(LOG_PATH);
         g_logger = logger_ptr.get();
