@@ -26,6 +26,10 @@ void Logger::error(const std::string& message) {
     write(LogLevel::ERROR, message);
 }
 
+
+// The mutex protects concurrent writes within the parent process (worker threads).
+// The child process has its own copy of the mutex after fork() — cross-process
+// write safety relies on O_APPEND atomicity for writes under PIPE_BUF bytes.
 void Logger::write(LogLevel level, const std::string& message) {
     std::string line = "[" + timestamp() + "] [" + level_string(level) + "] " + message + "\n";
 

@@ -46,8 +46,9 @@ void handle_connection(int client_fd, const std::string& client_ip) {
             return;
         }
 
-        LOG_WARN(client_ip + " -> 429 request limit reached");
-        client.send_response(response_too_many_requests().response);
+        // This block will only be reachable once keep-alive is implemented and the limit is actually hit
+        // LOG_WARN(client_ip + " -> 429 request limit reached");
+        // client.send_response(response_too_many_requests().response);
 
     } catch (const std::exception& e) {
         LOG_ERROR(client_ip + " unhandled exception: " + e.what());
