@@ -7,20 +7,21 @@
 #include "logger.h"
 #include <filesystem>
 #include <iostream>
+#include <memory>
 
 static const int PORT = 8080;
 static const size_t NUM_THREADS = 4;
 static const char*  LOG_PATH = "./logs/sss_server.log";
 
 int main() {
-    try {
-        std::filesystem::create_directories("./logs");
+    std::filesystem::create_directories("./logs");
 
-        // Heap-allocate the logger so it outlives any early exception during startup.
-        // g_logger is just a raw observer — it borrows the address, doesn't own it.
-        auto logger_ptr = std::make_unique<Logger>(LOG_PATH);
-        g_logger = logger_ptr.get();
-        
+    // Heap-allocate the logger so it outlives any early exception during startup.
+    // g_logger is a raw observer — it borrows the address, doesn't own it.
+    auto logger_ptr = std::make_unique<Logger>(LOG_PATH);
+    g_logger = logger_ptr.get();
+
+    try {        
         // IPC channel set up before fork - both processes inherit both ends,
         // then each closes the end it doesn't own
         IpcChannel ipc = create_ipc_channel();

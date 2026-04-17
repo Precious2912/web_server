@@ -65,7 +65,7 @@ std::string resolve_safe_path(const std::string& url_path, const std::string& ww
 
     if (candidate_str.back() != '/') candidate_str += '/';
 
-    // rfind at 0 = prefix check. Explicit and hard to misread.
+    // rfind at 0 = prefix check. Explicit.
     if (candidate_str.rfind(root_str, 0) != 0) return "";
 
     // Symlink note: realpath() follows them, so a symlink pointing outside

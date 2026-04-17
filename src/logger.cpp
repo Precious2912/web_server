@@ -43,6 +43,7 @@ void Logger::write(LogLevel level, const std::string& message) {
     // Mirror warnings and errors to stderr so they're visible during development
     if (level == LogLevel::WARN || level == LogLevel::ERROR)
         std::cerr << line;
+        
 }
 
 std::string Logger::level_string(LogLevel level) {
