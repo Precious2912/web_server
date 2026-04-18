@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <filesystem>
-#include <sys/syslimits.h>
+#include <climits>
 #include "response.h"
 #include "security.h"
 #include "utils.h"
