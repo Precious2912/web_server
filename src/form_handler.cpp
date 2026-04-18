@@ -1,14 +1,14 @@
-#include "form_handler.h"
-#include "utils.h"
-#include <sstream>
-#include <fstream>
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
-#include <algorithm>
-#include <sys/socket.h>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <sys/socket.h>
 #include <unistd.h>
+#include "form_handler.h"
 #include "logger.h"
+#include "utils.h"
 
 std::optional<FormData> parse_form_body(const std::string& body) {
     FormData data;
@@ -22,10 +22,10 @@ std::optional<FormData> parse_form_body(const std::string& body) {
         auto eq = pair.find('=');
         if (eq == std::string::npos) return std::nullopt; // key with no value is malformed
 
-        std::string key   = url_decode(pair.substr(0, eq));
+        std::string key = url_decode(pair.substr(0, eq));
         std::string value = url_decode(pair.substr(eq + 1));
 
-        if (key.empty()) return std::nullopt; // empty key is not something we accept
+        if (key.empty()) return std::nullopt;
 
         data[sanitise_field(key)] = sanitise_field(value);
     }
@@ -46,20 +46,18 @@ std::string sanitise_field(const std::string& value) {
 
     // Trim leading/trailing whitespace
     auto start = result.find_first_not_of(" \t");
-    auto end   = result.find_last_not_of(" \t");
+    auto end = result.find_last_not_of(" \t");
 
     if (start == std::string::npos) return "";
     return result.substr(start, end - start + 1);
 }
 
 bool save_form_data(const FormData& data) {
-    // Make sure ./data/ exists — create it if not
     std::filesystem::create_directories("./data");
 
     // Timestamp as filename so submissions don't overwrite each other
     auto now = std::chrono::system_clock::now();
-    auto ts  = std::chrono::duration_cast<std::chrono::microseconds>(
-                   now.time_since_epoch()).count();
+    auto ts = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 
     std::string path = "./data/submission_" + std::to_string(ts) + ".txt";
 

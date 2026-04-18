@@ -1,10 +1,10 @@
-#include "router.h"
-#include "response.h"
+#include <filesystem>
 #include "file_handler.h"
 #include "form_handler.h"
+#include "response.h"
+#include "router.h"
 #include "security.h"
 #include "utils.h"
-#include <filesystem>
 
 static const std::string WWW_ROOT = "./www";
 
@@ -16,7 +16,6 @@ void set_ipc_fd(int fd) {
     g_ipc_fd = fd;
 }
 
-
 // Pulls Content-Length from headers, returns -1 if missing or invalid
 static long get_content_length(const HttpRequest& req) {
     auto it = req.headers.find("content-length");
@@ -24,7 +23,6 @@ static long get_content_length(const HttpRequest& req) {
 
     std::string val = it->second;
 
-    // Trim trailing whitespace — some clients include \r or spaces
     auto end = val.find_last_not_of(" \t\r\n");
     if (end != std::string::npos)
         val = val.substr(0, end + 1);
@@ -53,13 +51,12 @@ static RouteResult handle_get(const HttpRequest& req) {
     std::string safe_path = resolve_safe_path(path, WWW_ROOT);
     if (safe_path.empty()){
         // realpath fails for both traversal attempts AND missing files.
-        // Check if the file simply doesn't exist before calling it forbidden.
         std::string candidate = WWW_ROOT + path;
-        if (!std::filesystem::exists(candidate))
+        if (!std::filesystem::exists(candidate)){
             return security_error_response(SecurityStatus::NOT_FOUND);
+        }
         return security_error_response(SecurityStatus::FORBIDDEN);
     }
-        //return security_error_response(SecurityStatus::FORBIDDEN);
 
     auto contents = read_file(safe_path);
     if (!contents)
@@ -75,7 +72,6 @@ static RouteResult handle_post(const HttpRequest& req) {
     if (!is_form_encoded(req))
         return response_unsupported_media_type();
 
-    // Content-Length is mandatory for POST — no guessing body size
     long content_length = get_content_length(req);
     if (content_length < 0) 
         return response_bad_request();

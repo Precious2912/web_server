@@ -1,7 +1,7 @@
 #include "socket.h"
 #include "utils.h"
-#include <stdexcept>
 #include <arpa/inet.h>
+#include <stdexcept>
 
 static const size_t INITIAL_BUF = 512; // starting recv buffer size
 
@@ -36,7 +36,7 @@ ServerSocket::ServerSocket(int port) {
 
 AcceptedClient ServerSocket::accept_client() const {
     sockaddr_in client_addr{};
-    socklen_t   addr_len = sizeof(client_addr);
+    socklen_t addr_len = sizeof(client_addr);
 
     int fd = accept(sockfd, (struct sockaddr*)&client_addr, &addr_len);
     if (fd < 0) return { -1, "" };
@@ -82,7 +82,7 @@ std::string ClientSocket::receive_request() const {
     // Check if there's a body to read (Content-Length header present)
     auto cl_pos = find_header_value(buffer, "content-length");
     if (cl_pos != std::string::npos) {
-        auto end   = buffer.find("\r\n", cl_pos);
+        auto end = buffer.find("\r\n", cl_pos);
         if (end != std::string::npos) {
             try {
                 size_t content_length = std::stoul(buffer.substr(cl_pos, end - cl_pos));
@@ -100,9 +100,7 @@ std::string ClientSocket::receive_request() const {
                         body_have += bytes;
                     }
                 }
-            } catch (...) {
-                // Non-numeric Content-Length — parser will reject it
-            }
+            } catch (...) {}
         }
     }
 

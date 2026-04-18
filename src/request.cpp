@@ -1,13 +1,15 @@
-#include "request.h"
-#include <sstream>
 #include <algorithm>
+#include <sstream>
+#include "request.h"
 
-static bool parse_header_line(const std::string& line,
-                               std::unordered_map<std::string, std::string>& headers) {
+static bool parse_header_line(
+    const std::string& line,
+    std::unordered_map<std::string, std::string>& headers) 
+{
     auto colon = line.find(':');
     if (colon == std::string::npos) return false;
 
-    std::string key   = line.substr(0, colon);
+    std::string key = line.substr(0, colon);
     std::string value = line.substr(colon + 1);
 
     // Normalise to lowercase — HTTP headers are case-insensitive (RFC 7230)

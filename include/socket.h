@@ -1,11 +1,11 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <unistd.h>
 #include <stdexcept>
 #include <string>
+#include <sys/socket.h>
+#include <unistd.h>
 
 // RAII Base Socket Class
 class Socket {
@@ -34,7 +34,7 @@ public:
 // doesn't have to make a second call to get the address.
 struct AcceptedClient {
     int         fd;
-    std::string ip; // dotted-decimal, e.g. "192.168.1.1"
+    std::string ip;
 };
 
 class ServerSocket : public Socket {

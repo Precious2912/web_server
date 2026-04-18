@@ -1,5 +1,5 @@
-#include "response.h"
 #include <unordered_map>
+#include "response.h"
 
 static std::string status_text(int code) {
     static const std::unordered_map<int, std::string> texts = {
@@ -11,7 +11,6 @@ static std::string status_text(int code) {
         {405, "Method Not Allowed"},
         {413, "Payload Too Large"},
         {415, "Unsupported Media Type"},
-        {429, "Too Many Requests"},
         {500, "Internal Server Error"}
 
     };
@@ -61,10 +60,6 @@ RouteResult response_payload_too_large() {
 
 RouteResult response_unsupported_media_type() {
     return { 415, build_response(415, "text/plain", "415 Unsupported Media Type") };
-}
-
-RouteResult response_too_many_requests() {
-    return { 429, build_response(429, "text/plain", "429 Too Many Requests") };
 }
 
 RouteResult response_redirect(const std::string& location) {

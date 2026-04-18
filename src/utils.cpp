@@ -1,5 +1,5 @@
-#include "utils.h"
 #include <algorithm>
+#include "utils.h"
 
 // Decodes %XX
 // Without this, /%2e%2e/etc/passwd sails right past has_traversal().

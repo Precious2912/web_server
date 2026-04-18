@@ -1,13 +1,13 @@
-#include "security.h"
-#include "response.h"
-#include "utils.h"
-#include <sys/syslimits.h>
 #include <cstdlib>
 #include <filesystem>
+#include <sys/syslimits.h>
+#include "response.h"
+#include "security.h"
+#include "utils.h"
 
 static const std::string ALLOWED_METHODS[] = { "GET", "POST" };
-static const size_t MAX_METHOD_LEN  = 7;
-static const size_t MAX_PATH_LEN    = 2048;
+static const size_t MAX_METHOD_LEN = 7;
+static const size_t MAX_PATH_LEN = 2048;
 
 static bool has_null_byte(const std::string& s) {
     return s.find('\0') != std::string::npos;
@@ -25,21 +25,21 @@ static bool is_allowed_method(const std::string& method) {
 
 int security_status_code(SecurityStatus status) {
     switch (status) {
-        case SecurityStatus::FORBIDDEN:          return 403;
-        case SecurityStatus::NOT_FOUND:          return 404;
+        case SecurityStatus::FORBIDDEN: return 403;
+        case SecurityStatus::NOT_FOUND: return 404;
         case SecurityStatus::METHOD_NOT_ALLOWED: return 405;
-        case SecurityStatus::TOO_LARGE:          return 413;
-        default:                                 return 400;
+        case SecurityStatus::TOO_LARGE: return 413;
+        default: return 400;
     }
 }
 
 RouteResult security_error_response(SecurityStatus status) {
     switch (status) {
-        case SecurityStatus::FORBIDDEN:          return response_forbidden();
-        case SecurityStatus::NOT_FOUND:          return response_not_found();
+        case SecurityStatus::FORBIDDEN: return response_forbidden();
+        case SecurityStatus::NOT_FOUND: return response_not_found();
         case SecurityStatus::METHOD_NOT_ALLOWED: return response_method_not_supported();
-        case SecurityStatus::TOO_LARGE:          return response_payload_too_large();
-        default:                                 return response_bad_request();
+        case SecurityStatus::TOO_LARGE: return response_payload_too_large();
+        default: return response_bad_request();
     }
 }
 
@@ -55,7 +55,7 @@ std::string resolve_safe_path(const std::string& url_path, const std::string& ww
     if (!realpath(www_root.c_str(), resolved_root)) return "";
     std::string root_str(resolved_root);
 
-    // Trailing slash matters — without it, /www-evil would pass as /www
+    // Trailing slash matters — without it, something like /www-evil would pass as /www
     if (root_str.back() != '/') root_str += '/';
 
     char resolved_candidate[PATH_MAX];
@@ -68,9 +68,11 @@ std::string resolve_safe_path(const std::string& url_path, const std::string& ww
     // rfind at 0 = prefix check. Explicit.
     if (candidate_str.rfind(root_str, 0) != 0) return "";
 
-    // Symlink note: realpath() follows them, so a symlink pointing outside
-    // /www will fail the prefix check above. One inside /www is fine.
-    // If policy changes, lstat() here can block all of them.
+    /*
+    Symlink note: realpath() follows them, so a symlink pointing outside
+    /www will fail the prefix check above. One inside /www is fine.
+    If policy changes, lstat() here can block all of them.
+    */
 
     candidate_str.pop_back();
     return candidate_str;

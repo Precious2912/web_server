@@ -1,17 +1,17 @@
 #ifndef SECURITY_H
 #define SECURITY_H
 
+#include <string>
 #include "request.h"
 #include "result.h"
-#include <string>
 
 enum class SecurityStatus {
     OK,
-    BAD_REQUEST,    // malformed input
-    FORBIDDEN,      // valid request but access denied
-    NOT_FOUND,      // path doesn't exist inside www
+    BAD_REQUEST, // malformed input
+    FORBIDDEN, // valid request but access denied
+    NOT_FOUND, // path doesn't exist inside www
     METHOD_NOT_ALLOWED, // not get or post methods
-    TOO_LARGE,      // body exceeded limit
+    TOO_LARGE, // body exceeded limit
 };
 
 // Maps a SecurityStatus to its HTTP status code — single source of truth

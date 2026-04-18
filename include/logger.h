@@ -8,13 +8,13 @@
 enum class LogLevel {
     INFO,
     WARN,
-    ERROR   // ERROR conflicts with a macro on some platforms
+    ERROR
 };
 
 class Logger {
 public:
     // Opens (or creates) the log file in append mode.
-    // Throws if the file can't be opened — logging failure at startup is fatal.
+    // Throws if the file can't be opened - logging failure at startup is fatal (this is deliberate)
     explicit Logger(const std::string& filepath);
 
     // Disable copying — one logger owns the file handle
@@ -27,7 +27,7 @@ public:
 
 private:
     std::ofstream file;
-    std::mutex    write_mutex;
+    std::mutex write_mutex;
 
     void write(LogLevel level, const std::string& message);
 
@@ -35,9 +35,6 @@ private:
     static std::string timestamp();
 };
 
-// Single global instance — initialised in main() before fork(),
-// inherited by the child process. Append-mode writes are safe across
-// both processes on Linux without additional locking.
 extern Logger* g_logger;
 
 // Null-check wrappers so call sites don't have to think about it
