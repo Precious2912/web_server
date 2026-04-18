@@ -39,33 +39,33 @@ std::string build_response(int status_code,
 
 
 RouteResult response_bad_request() {
-    return { 400, build_response(400, "text/plain", "400 Bad Request") };
+    return { 400, build_response(400, "text/plain", "400 Bad Request\n") };
 }
 
 RouteResult response_forbidden() {
-    return { 403, build_response(403, "text/plain", "403 Forbidden") };
+    return { 403, build_response(403, "text/plain", "403 Forbidden\n") };
 }
 
 RouteResult response_not_found() {
-    return { 404, build_response(404, "text/plain", "404 Not Found") };
+    return { 404, build_response(404, "text/plain", "404 Not Found\n") };
 }
 
 RouteResult response_method_not_supported() {
-    return { 405, build_response(405, "text/plain", "405 Method Not Allowed") };
+    return { 405, build_response(405, "text/plain", "405 Method Not Allowed\n") };
 }
 
 RouteResult response_payload_too_large() {
-    return { 413, build_response(413, "text/plain", "413 Payload Too Large") };
+    return { 413, build_response(413, "text/plain", "413 Payload Too Large\n") };
 }
 
 RouteResult response_unsupported_media_type() {
-    return { 415, build_response(415, "text/plain", "415 Unsupported Media Type") };
+    return { 415, build_response(415, "text/plain", "415 Unsupported Media Type\n") };
 }
 
 RouteResult response_redirect(const std::string& location) {
-    return { 303, build_response(303, "text/plain", "See Other", {{"Location", location}}) };
+    return { 303, build_response(303, "text/plain", "", {{"Location", location}}) };
 }
 
 RouteResult response_internal_server_error() {
-    return { 500, build_response(500, "text/plain", "500 Internal Server Error") };
+    return { 500, build_response(500, "text/plain", "500 Internal Server Error\n") };
 }
