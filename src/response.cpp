@@ -63,7 +63,7 @@ RouteResult response_unsupported_media_type() {
 }
 
 RouteResult response_redirect(const std::string& location) {
-    return { 303, build_response(303, "text/plain", "", {{"Location", location}}) };
+    return { 303, build_response(303, "text/plain", "See Other\n", {{"Location", location}}) };
 }
 
 RouteResult response_internal_server_error() {
